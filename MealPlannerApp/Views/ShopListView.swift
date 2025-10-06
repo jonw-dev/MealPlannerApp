@@ -13,8 +13,11 @@ struct ShopListView: View {
     @Query(sort: \ShoppingListItem.name) private var shoppingList: [ShoppingListItem]
     @Query private var scheduledMeals: [ScheduledMeal]
     @Query private var settings: [MealPlanSettings]
+    @ObservedObject private var subscriptionManager = RevenueCatManager.shared
     @State private var showingAddItems = false
     @State private var selectedItems: Set<ShoppingItem.ID> = []
+    @State private var showingShareOptions = false
+    @State private var showingPaywall = false
     
     private var mealPlanDateRange: (start: Date, end: Date)? {
         guard let settings = settings.first,
@@ -97,6 +100,20 @@ struct ShopListView: View {
             }
             .navigationTitle("Shopping List")
             .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        if subscriptionManager.isPremium {
+                            showingShareOptions = true
+                        } else {
+                            showingPaywall = true
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(AppTheme.primary)
+                    }
+                    .disabled(shoppingList.isEmpty)
+                }
+                
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: generateFromMealPlan) {
@@ -141,6 +158,23 @@ struct ShopListView: View {
                         }
                 }
             }
+            .sheet(isPresented: $showingPaywall) {
+                RevenueCatPaywallView()
+            }
+            .confirmationDialog("Share Shopping List", isPresented: $showingShareOptions) {
+                Button("Share Simple List") {
+                    shareSimpleList()
+                }
+                Button("Share Detailed List") {
+                    shareDetailedList()
+                }
+                Button("Export as CSV") {
+                    shareAsCSV()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Choose how you'd like to share your shopping list")
+            }
             .background(AppTheme.background)
         }
     }
@@ -184,6 +218,26 @@ struct ShopListView: View {
         for item in shoppingList {
             modelContext.delete(item)
         }
+    }
+    
+    // MARK: - Sharing Methods
+    
+    private func shareSimpleList() {
+        let text = ShareManager.generateSimpleShoppingListText(items: shoppingList)
+        ShareManager.shareText(text)
+    }
+    
+    private func shareDetailedList() {
+        let text = ShareManager.generateShoppingListText(items: shoppingList)
+        ShareManager.shareText(text)
+    }
+    
+    private func shareAsCSV() {
+        let csv = ShareManager.generateShoppingListCSV(items: shoppingList)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let fileName = "shopping-list-\(dateFormatter.string(from: Date())).csv"
+        ShareManager.shareFile(csv, fileName: fileName)
     }
     
     private func generateFromMealPlan() {

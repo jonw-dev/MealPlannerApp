@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import RevenueCat
 
 @main
 struct SimpleMealPlannerApp: App {
@@ -14,8 +15,23 @@ struct SimpleMealPlannerApp: App {
     @State private var showLaunchScreen = true
     
     init() {
+        // Initialize RevenueCat
+        Purchases.logLevel = .debug  // Shows detailed logs - remove in production
+        Purchases.configure(withAPIKey: "appl_GlCsilbnFLPORgRaVDLFPcqWycm")
+        
         do {
-            modelContainer = try ModelContainer(for: ShoppingItem.self, Meal.self, ScheduledMeal.self, ShoppingListItem.self, MealPlanSettings.self)
+            // Configure ModelContainer with schema to handle migrations
+            let schema = Schema([
+                ShoppingItem.self,
+                Meal.self,
+                ScheduledMeal.self,
+                ShoppingListItem.self,
+                MealPlanSettings.self
+            ])
+            
+            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            
+            modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
             let context = modelContainer.mainContext
             
             // Check if this is the first launch
@@ -41,6 +57,14 @@ struct SimpleMealPlannerApp: App {
             let settingsDescriptor = FetchDescriptor<MealPlanSettings>()
             if try context.fetch(settingsDescriptor).isEmpty {
                 context.insert(MealPlanSettings())
+            }
+            
+            // Run migration for existing data
+            do {
+                try ModelMigration.migrateExistingData(context: context)
+            } catch {
+                print("Migration warning: \(error)")
+                // Don't fail if migration has issues, just log it
             }
         } catch {
             fatalError("Could not initialize ModelContainer: \(error)")

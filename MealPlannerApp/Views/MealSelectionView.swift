@@ -48,8 +48,18 @@ struct MealSelectionView: View {
                         if let selectedMeal = selectedMeal {
                             let scheduledMeal = ScheduledMeal(date: selectedDate, meal: selectedMeal)
                             modelContext.insert(scheduledMeal)
+                            
+                            // Explicitly save the context to ensure persistence
+                            do {
+                                try modelContext.save()
+                                dismiss()
+                            } catch {
+                                print("Failed to save scheduled meal: \(error)")
+                                // You might want to show an alert to the user here
+                            }
+                        } else {
+                            dismiss()
                         }
-                        dismiss()
                     }
                     .disabled(selectedMeal == nil)
                 }

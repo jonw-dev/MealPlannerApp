@@ -20,7 +20,7 @@ struct LaunchScreen: View {
                     .scaleEffect(isAnimating ? 1 : 0.5)
                 
                 // App Name
-                Text("Simple Meal Planner")
+                Text("Simple Meal")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(AppTheme.primary)
                     .opacity(isAnimating ? 1 : 0)

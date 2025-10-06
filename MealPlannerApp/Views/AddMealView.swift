@@ -17,12 +17,23 @@ struct AddMealView: View {
     @State private var showingImagePicker = false
     @State private var showingIngredientPicker = false
     @State private var selectedIngredients: [ShoppingItem] = []
+    @State private var selectedCategory: MealCategory = .other
 
     var body: some View {
         NavigationStack {
             Form {
                 TextField("Meal Name", text: $name)
                 TextField("Description", text: $descriptionn)
+                
+                Section("Category") {
+                    Picker("Meal Type", selection: $selectedCategory) {
+                        ForEach(MealCategory.allCases, id: \.self) { category in
+                            Label(category.rawValue, systemImage: category.icon)
+                                .tag(category)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
 
                 if let imageData = imageData, let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)
@@ -62,10 +73,19 @@ struct AddMealView: View {
                         name: name,
                         descriptionn: descriptionn,
                         imageData: imageData,
-                        ingredients: selectedIngredients
+                        ingredients: selectedIngredients,
+                        category: selectedCategory
                        )
                        modelContext.insert(newMeal)
-                       dismiss()
+                       
+                       // Explicitly save the context to ensure persistence
+                       do {
+                           try modelContext.save()
+                           dismiss()
+                       } catch {
+                           print("Failed to save meal: \(error)")
+                           // You might want to show an alert to the user here
+                       }
                    }
                    .disabled(name.isEmpty || selectedIngredients.isEmpty)
                }

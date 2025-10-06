@@ -45,6 +45,12 @@ struct MealsView: View {
         for index in offsets {
             modelContext.delete(meals[index])
         }
+        // Save after deleting meals
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save meal deletion: \(error)")
+        }
     }
 }
 
@@ -250,6 +256,12 @@ struct EditMealView: View {
                     }
                     .onDelete { indexSet in
                         meal.ingredients.remove(atOffsets: indexSet)
+                        // Save after removing ingredients
+                        do {
+                            try modelContext.save()
+                        } catch {
+                            print("Failed to save ingredient removal: \(error)")
+                        }
                     }
                 }
                 
@@ -321,5 +333,12 @@ struct EditMealView: View {
             }
         }
         selectedItems.removeAll()
+        
+        // Explicitly save the context to ensure ingredient changes persist
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save ingredient changes: \(error)")
+        }
     }
 }
