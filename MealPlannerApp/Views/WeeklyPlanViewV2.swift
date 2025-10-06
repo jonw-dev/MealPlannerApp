@@ -248,13 +248,11 @@ struct WeeklyPlanViewV2: View {
     // MARK: - Sharing Methods
     
     private func shareMealPlanAsText() {
-        let text = ShareManager.generateMealPlanText(scheduledMeals: scheduledMeals, dateRange: dates)
-        ShareManager.shareText(text)
+        ShareManager.shareMealPlanWithDeepLink(scheduledMeals: scheduledMeals, dateRange: dates, includeDetails: false)
     }
     
     private func shareMealPlanDetailed() {
-        let text = ShareManager.generateDetailedMealPlanText(scheduledMeals: scheduledMeals, dateRange: dates)
-        ShareManager.shareText(text)
+        ShareManager.shareMealPlanWithDeepLink(scheduledMeals: scheduledMeals, dateRange: dates, includeDetails: true)
     }
     
     private func shareMealPlanAsCSV() {

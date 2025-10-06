@@ -12,6 +12,7 @@ import RevenueCat
 @main
 struct SimpleMealPlannerApp: App {
     let modelContainer: ModelContainer
+    @StateObject private var deepLinkHandler = DeepLinkHandler()
     @State private var showLaunchScreen = true
     
     init() {
@@ -76,6 +77,7 @@ struct SimpleMealPlannerApp: App {
             ZStack {
                 MainTabView()
                     .opacity(showLaunchScreen ? 0 : 1)
+                    .environmentObject(deepLinkHandler)
                 
                 if showLaunchScreen {
                     LaunchScreen()
@@ -89,8 +91,48 @@ struct SimpleMealPlannerApp: App {
                     }
                 }
             }
+            .onOpenURL { url in
+                print("📱 Received URL: \(url)")
+                _ = deepLinkHandler.handleURL(url)
+            }
+            .alert("Import Shared Content", isPresented: $deepLinkHandler.showImportAlert) {
+                Button("Import") {
+                    handleImport()
+                }
+                Button("Cancel", role: .cancel) {
+                    deepLinkHandler.pendingImport = nil
+                }
+            } message: {
+                if let importData = deepLinkHandler.pendingImport {
+                    switch importData {
+                    case .mealPlan(let data):
+                        Text("Import \(data.meals.count) meal(s) from a shared meal plan?")
+                    case .shoppingList(let data):
+                        Text("Import \(data.items.count) item(s) from a shared shopping list?")
+                    case .meal(let data):
+                        Text("Import '\(data.name)' meal recipe?")
+                    }
+                }
+            }
         }
         .modelContainer(modelContainer)
+    }
+    
+    private func handleImport() {
+        guard let importData = deepLinkHandler.pendingImport else { return }
+        
+        let context = modelContainer.mainContext
+        
+        switch importData {
+        case .mealPlan(let data):
+            deepLinkHandler.importMealPlan(data, modelContext: context)
+        case .shoppingList(let data):
+            deepLinkHandler.importShoppingList(data, modelContext: context)
+        case .meal(let data):
+            deepLinkHandler.importMeal(data, modelContext: context)
+        }
+        
+        deepLinkHandler.pendingImport = nil
     }
     
     private func parseQuantityAndUnit(from string: String) -> (Double, String) {

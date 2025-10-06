@@ -223,13 +223,11 @@ struct ShopListView: View {
     // MARK: - Sharing Methods
     
     private func shareSimpleList() {
-        let text = ShareManager.generateSimpleShoppingListText(items: shoppingList)
-        ShareManager.shareText(text)
+        ShareManager.shareShoppingListWithDeepLink(items: shoppingList, includeDetails: false)
     }
     
     private func shareDetailedList() {
-        let text = ShareManager.generateShoppingListText(items: shoppingList)
-        ShareManager.shareText(text)
+        ShareManager.shareShoppingListWithDeepLink(items: shoppingList, includeDetails: true)
     }
     
     private func shareAsCSV() {

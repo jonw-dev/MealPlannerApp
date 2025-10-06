@@ -92,6 +92,8 @@ struct MealRowView: View {
 
 struct MealDetailView: View {
     @Bindable var meal: Meal
+    @ObservedObject private var subscriptionManager = RevenueCatManager.shared
+    @State private var showingPaywall = false
     
     var body: some View {
         ScrollView {
@@ -118,6 +120,15 @@ struct MealDetailView: View {
         .navigationTitle("Meal Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    shareMeal()
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundColor(AppTheme.primary)
+                }
+            }
+            
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink {
                     EditMealView(meal: meal)
@@ -127,6 +138,19 @@ struct MealDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingPaywall) {
+            RevenueCatPaywallView()
+        }
+    }
+    
+    private func shareMeal() {
+        // Check if user has premium
+        guard subscriptionManager.isPremium else {
+            showingPaywall = true
+            return
+        }
+        
+        ShareManager.shareMealWithDeepLink(meal: meal)
     }
 }
 

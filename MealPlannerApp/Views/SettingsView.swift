@@ -126,11 +126,11 @@ struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text("2.0")
                             .foregroundColor(AppTheme.secondary)
                     }
                     
-                    Link(destination: URL(string: "https://yourwebsite.com/privacy")!) {
+                    Link(destination: URL(string: "https://doc-hosting.flycricket.io/simple-meal-planner-privacy-policy/9edf5d5a-6dda-4aed-b36f-96826311cf9d/privacy")!) {
                         HStack {
                             Text("Privacy Policy")
                             Spacer()
@@ -139,11 +139,27 @@ struct SettingsView: View {
                         }
                     }
                     
-                    Link(destination: URL(string: "https://yourwebsite.com/terms")!) {
+                    Link(destination: URL(string: "https://doc-hosting.flycricket.io/simple-meal-planner-terms-conditions/5a2a9162-5582-438d-a25f-7c0e649428c1/terms")!) {
                         HStack {
-                            Text("Terms of Service")
+                            Text("Terms & Conditions")
                             Spacer()
                             Image(systemName: "arrow.up.right.square")
+                                .foregroundColor(AppTheme.secondary)
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Developer")
+                        Spacer()
+                        Text("Jon Richardson-Williams")
+                            .foregroundColor(AppTheme.secondary)
+                    }
+                    
+                    Link(destination: URL(string: "mailto:SimpleMealP@gmail.com")!) {
+                        HStack {
+                            Text("Contact Support")
+                            Spacer()
+                            Image(systemName: "envelope")
                                 .foregroundColor(AppTheme.secondary)
                         }
                     }

@@ -196,10 +196,20 @@ class ShareManager {
     
     // MARK: - Share Sheet Presentation
     
-    /// Present share sheet for text content
-    static func shareText(_ text: String, title: String = "Share") {
+    /// Present share sheet for text content with optional deep link
+    static func shareText(_ text: String, deepLink: URL? = nil, title: String = "Share") {
+        var items: [Any] = []
+        
+        // Add deep link first if available (so it appears as preview in Messages)
+        if let deepLink = deepLink {
+            items.append(deepLink)
+        }
+        
+        // Add text content
+        items.append(text)
+        
         let activityVC = UIActivityViewController(
-            activityItems: [text],
+            activityItems: items,
             applicationActivities: nil
         )
         
@@ -217,6 +227,80 @@ class ShareManager {
             
             rootViewController.present(activityVC, animated: true)
         }
+    }
+    
+    /// Share meal plan with deep link support
+    static func shareMealPlanWithDeepLink(scheduledMeals: [ScheduledMeal], dateRange: [Date], includeDetails: Bool = false) {
+        let text = includeDetails 
+            ? generateDetailedMealPlanText(scheduledMeals: scheduledMeals, dateRange: dateRange)
+            : generateMealPlanText(scheduledMeals: scheduledMeals, dateRange: dateRange)
+        
+        let deepLink = DeepLinkHandler.generateMealPlanURL(scheduledMeals: scheduledMeals)
+        
+        var finalText = text
+        if let deepLink = deepLink {
+            finalText += "\n\n📲 Open in Simple Meal:\n\(deepLink.absoluteString)"
+            finalText += "\n\nDon't have the app? Get it here:\nhttps://apps.apple.com/gb/app/simplemealplannerapp/id6746522845"
+        }
+        
+        ShareManager.shareText(finalText, deepLink: deepLink)
+    }
+    
+    /// Share shopping list with deep link support
+    static func shareShoppingListWithDeepLink(items: [ShoppingListItem], includeDetails: Bool = false) {
+        let text = includeDetails 
+            ? generateShoppingListText(items: items)
+            : generateSimpleShoppingListText(items: items)
+        
+        let deepLink = DeepLinkHandler.generateShoppingListURL(items: items)
+        
+        var finalText = text
+        if let deepLink = deepLink {
+            finalText += "\n\n📲 Open in Simple Meal:\n\(deepLink.absoluteString)"
+            finalText += "\n\nDon't have the app? Get it here:\nhttps://apps.apple.com/gb/app/simplemealplannerapp/id6746522845"
+        }
+        
+        ShareManager.shareText(finalText, deepLink: deepLink)
+    }
+    
+    /// Share individual meal with deep link support
+    static func shareMealWithDeepLink(meal: Meal) {
+        let text = generateMealText(meal: meal)
+        let deepLink = DeepLinkHandler.generateMealURL(meal: meal)
+        
+        var finalText = text
+        if let deepLink = deepLink {
+            finalText += "\n\n📲 Open in Simple Meal:\n\(deepLink.absoluteString)"
+            finalText += "\n\nDon't have the app? Get it here:\nhttps://apps.apple.com/gb/app/simplemealplannerapp/id6746522845"
+        }
+        
+        ShareManager.shareText(finalText, deepLink: deepLink)
+    }
+    
+    /// Generate formatted text for a single meal
+    static func generateMealText(meal: Meal) -> String {
+        let categoryIcon = getCategoryIcon(meal.mealCategory)
+        
+        var text = "🍽️ \(meal.name.uppercased())\n"
+        text += "═══════════════════════════════\n\n"
+        text += "\(categoryIcon) \(meal.mealCategory.rawValue)\n\n"
+        
+        if !meal.descriptionn.isEmpty {
+            text += "📝 Description:\n\(meal.descriptionn)\n\n"
+        }
+        
+        if !meal.ingredients.isEmpty {
+            text += "🥘 Ingredients:\n"
+            for ingredient in meal.ingredients {
+                text += "  • \(ingredient.name)\n"
+            }
+            text += "\n"
+        }
+        
+        text += "═══════════════════════════════\n"
+        text += "Shared from Simple Meal 📱\n"
+        
+        return text
     }
     
     /// Present share sheet for file (CSV)
