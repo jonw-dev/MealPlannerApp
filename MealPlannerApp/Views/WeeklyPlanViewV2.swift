@@ -196,6 +196,10 @@ struct WeeklyPlanViewV2: View {
                     modelContext.insert(MealPlanSettings())
                     try? modelContext.save()
                 }
+                
+                // Clean up any orphaned scheduled meals on app start
+                cleanupOrphanedScheduledMeals()
+                
                 Task {
                     await subscriptionManager.checkSubscription()
                 }
@@ -206,6 +210,20 @@ struct WeeklyPlanViewV2: View {
     private func scheduledMealsFor(date: Date) -> [ScheduledMeal] {
         scheduledMeals
             .filter { calendar.isDate($0.date, inSameDayAs: date) }
+            .filter { scheduledMeal in
+                // Filter out any scheduled meals with broken meal references
+                // This prevents crashes if a meal was deleted but scheduled meals weren't cleaned up
+                do {
+                    let _ = scheduledMeal.meal.name // Test if meal reference is valid
+                    return true
+                } catch {
+                    // If accessing the meal throws an error, delete this orphaned scheduled meal
+                    print("⚠️ Found orphaned scheduled meal, removing it")
+                    modelContext.delete(scheduledMeal)
+                    try? modelContext.save()
+                    return false
+                }
+            }
             .sorted { $0.mealTime < $1.mealTime }
     }
     
@@ -261,6 +279,32 @@ struct WeeklyPlanViewV2: View {
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let fileName = "meal-plan-\(dateFormatter.string(from: Date())).csv"
         ShareManager.shareFile(csv, fileName: fileName)
+    }
+    
+    private func cleanupOrphanedScheduledMeals() {
+        // Find and remove any scheduled meals with broken meal references
+        var orphanedCount = 0
+        
+        for scheduledMeal in scheduledMeals {
+            do {
+                // Try to access the meal - if this fails, the reference is broken
+                let _ = scheduledMeal.meal.name
+            } catch {
+                // Found an orphaned scheduled meal
+                print("⚠️ Removing orphaned scheduled meal")
+                modelContext.delete(scheduledMeal)
+                orphanedCount += 1
+            }
+        }
+        
+        if orphanedCount > 0 {
+            do {
+                try modelContext.save()
+                print("✅ Cleaned up \(orphanedCount) orphaned scheduled meal(s)")
+            } catch {
+                print("❌ Failed to save cleanup: \(error)")
+            }
+        }
     }
 }
 

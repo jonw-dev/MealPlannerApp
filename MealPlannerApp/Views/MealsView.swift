@@ -11,6 +11,7 @@ import SwiftData
 struct MealsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Meal.name) private var meals: [Meal]
+    @Query private var scheduledMeals: [ScheduledMeal]
     @State private var showingAddMeal = false
     
     var body: some View {
@@ -43,13 +44,27 @@ struct MealsView: View {
     
     private func deleteMeals(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(meals[index])
+            let mealToDelete = meals[index]
+            
+            // First, delete all scheduled meals that reference this meal
+            let relatedScheduledMeals = scheduledMeals.filter { scheduledMeal in
+                scheduledMeal.meal.id == mealToDelete.id
+            }
+            
+            for scheduledMeal in relatedScheduledMeals {
+                modelContext.delete(scheduledMeal)
+            }
+            
+            // Then delete the meal itself
+            modelContext.delete(mealToDelete)
         }
+        
         // Save after deleting meals
         do {
             try modelContext.save()
+            print("✅ Successfully deleted meal(s) and related scheduled meals")
         } catch {
-            print("Failed to save meal deletion: \(error)")
+            print("❌ Failed to save meal deletion: \(error)")
         }
     }
 }
