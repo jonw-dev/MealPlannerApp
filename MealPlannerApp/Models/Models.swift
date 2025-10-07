@@ -47,6 +47,82 @@ enum MealCategory: String, Codable, CaseIterable {
     }
 }
 
+// New model for meal ingredients that are independent of the shopping items library
+@Model
+class MealIngredient: Identifiable {
+    var id: UUID
+    var name: String
+    var category: String
+    var customEmoji: String?
+    
+    init(name: String, category: String, customEmoji: String? = nil) {
+        self.id = UUID()
+        self.name = name
+        self.category = category
+        self.customEmoji = customEmoji
+    }
+    
+    // Copy constructor from ShoppingItem
+    convenience init(from shoppingItem: ShoppingItem) {
+        self.init(
+            name: shoppingItem.name,
+            category: shoppingItem.category,
+            customEmoji: shoppingItem.customEmoji
+        )
+    }
+    
+    var displayEmoji: String {
+        if let custom = customEmoji {
+            return custom
+        }
+        // Look up emoji from DefaultItems
+        if let defaultItem = DefaultItems.items.first(where: { $0.name == name && $0.category == category }) {
+            return defaultItem.emoji
+        }
+        // Default emoji based on category if no match found
+        switch category {
+        case "Produce":
+            return "🥬"
+        case "Meat & Seafood":
+            return "🍖"
+        case "Dairy & Eggs":
+            return "🥛"
+        case "Pantry":
+            return "🥫"
+        case "Grains & Pasta":
+            return "🌾"
+        case "Canned Goods":
+            return "🥫"
+        case "Frozen Foods":
+            return "🧊"
+        case "Condiments":
+            return "🫗"
+        case "Spices & Herbs":
+            return "🌿"
+        case "Baking":
+            return "🥖"
+        case "Beverages":
+            return "🥤"
+        case "Snacks":
+            return "🍿"
+        case "Cleaning Supplies":
+            return "🧼"
+        case "Paper & Plastic":
+            return "🧻"
+        case "Household Essentials":
+            return "🏠"
+        case "Personal Care":
+            return "🧴"
+        case "Pet Supplies":
+            return "🐾"
+        case "Baby Items":
+            return "🍼"
+        default:
+            return "🛒"
+        }
+    }
+}
+
 @Model
 class Meal: Identifiable {
     var id: UUID
@@ -54,9 +130,9 @@ class Meal: Identifiable {
     var descriptionn: String
     var imageData: Data?
     var category: String = "Other" // Store as String for SwiftData compatibility, with default
-    @Relationship(deleteRule: .nullify) var ingredients: [ShoppingItem]
+    @Relationship(deleteRule: .cascade) var ingredients: [MealIngredient] // Changed to MealIngredient with cascade delete
     
-    init(name: String, descriptionn: String, imageData: Data? = nil, ingredients: [ShoppingItem] = [], category: MealCategory = .other) {
+    init(name: String, descriptionn: String, imageData: Data? = nil, ingredients: [MealIngredient] = [], category: MealCategory = .other) {
         self.id = UUID()
         self.name = name
         self.descriptionn = descriptionn

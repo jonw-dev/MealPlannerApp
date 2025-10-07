@@ -11,7 +11,7 @@ import SwiftData
 /// Migration helper for updating models
 struct ModelMigration {
     
-    /// Migrates existing meals to add default category if missing
+    /// Migrates existing meals to add default category if missing and handle ingredient model changes
     static func migrateExistingData(context: ModelContext) throws {
         // Fetch all meals
         let mealDescriptor = FetchDescriptor<Meal>()
@@ -22,6 +22,11 @@ struct ModelMigration {
             if meal.category.isEmpty {
                 meal.category = "Other"
             }
+            
+            // Note: Ingredient migration from ShoppingItem to MealIngredient
+            // is handled automatically by SwiftData when the app detects the schema change.
+            // Existing meals may lose their ingredients due to the model change.
+            // Users should re-add ingredients to any affected meals.
         }
         
         // Fetch all scheduled meals

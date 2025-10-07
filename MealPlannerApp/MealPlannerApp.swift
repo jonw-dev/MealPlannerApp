@@ -24,6 +24,7 @@ struct SimpleMealPlannerApp: App {
             // Configure ModelContainer with schema to handle migrations
             let schema = Schema([
                 ShoppingItem.self,
+                MealIngredient.self,
                 Meal.self,
                 ScheduledMeal.self,
                 ShoppingListItem.self,

@@ -195,7 +195,7 @@ struct MealImageView: View {
 }
 
 struct IngredientsSection: View {
-    let ingredients: [ShoppingItem]
+    let ingredients: [MealIngredient]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -226,7 +226,7 @@ struct IngredientsSection: View {
 }
 
 struct IngredientRow: View {
-    let ingredient: ShoppingItem
+    let ingredient: MealIngredient
     
     var body: some View {
         HStack {
@@ -366,8 +366,11 @@ struct EditMealView: View {
             if let item = try? modelContext.fetch(FetchDescriptor<ShoppingItem>(predicate: #Predicate<ShoppingItem> { item in
                 item.id == itemID
             })).first {
-                if !meal.ingredients.contains(where: { $0.id == item.id }) {
-                    meal.ingredients.append(item)
+                // Check if ingredient with same name already exists
+                if !meal.ingredients.contains(where: { $0.name == item.name }) {
+                    // Create a copy as MealIngredient (independent from ShoppingItem)
+                    let mealIngredient = MealIngredient(from: item)
+                    meal.ingredients.append(mealIngredient)
                 }
             }
         }

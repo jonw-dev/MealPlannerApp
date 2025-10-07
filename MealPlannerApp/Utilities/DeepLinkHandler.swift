@@ -234,9 +234,9 @@ class DeepLinkHandler: ObservableObject {
     
     func importMealPlan(_ data: MealPlanImportData, modelContext: ModelContext) {
         for mealData in data.meals {
-            // Create ingredients as ShoppingItems
+            // Create ingredients as MealIngredients (independent from shopping items library)
             let ingredients = mealData.ingredients.map { name in
-                ShoppingItem(name: name, category: "Pantry")
+                MealIngredient(name: name, category: "Pantry")
             }
             
             // Create meal category
@@ -257,11 +257,6 @@ class DeepLinkHandler: ObservableObject {
                 meal: meal,
                 mealTime: Date(timeIntervalSince1970: mealData.mealTime)
             )
-            
-            // Insert ingredients first
-            for ingredient in ingredients {
-                modelContext.insert(ingredient)
-            }
             
             modelContext.insert(meal)
             modelContext.insert(scheduledMeal)
@@ -286,9 +281,9 @@ class DeepLinkHandler: ObservableObject {
     }
     
     func importMeal(_ data: MealImportData, modelContext: ModelContext) {
-        // Create ingredients as ShoppingItems
+        // Create ingredients as MealIngredients (independent from shopping items library)
         let ingredients = data.ingredients.map { name in
-            ShoppingItem(name: name, category: "Pantry")
+            MealIngredient(name: name, category: "Pantry")
         }
         
         // Create meal category
@@ -302,11 +297,6 @@ class DeepLinkHandler: ObservableObject {
             ingredients: ingredients,
             category: category
         )
-        
-        // Insert ingredients first
-        for ingredient in ingredients {
-            modelContext.insert(ingredient)
-        }
         
         modelContext.insert(meal)
         

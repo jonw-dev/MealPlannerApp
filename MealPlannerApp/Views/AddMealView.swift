@@ -69,11 +69,16 @@ struct AddMealView: View {
                }
                ToolbarItem(placement: .confirmationAction) {
                    Button("Save") {
+                       // Convert ShoppingItems to MealIngredients (creates independent copies)
+                       let mealIngredients = selectedIngredients.map { shoppingItem in
+                           MealIngredient(from: shoppingItem)
+                       }
+                       
                        let newMeal = Meal(
                         name: name,
                         descriptionn: descriptionn,
                         imageData: imageData,
-                        ingredients: selectedIngredients,
+                        ingredients: mealIngredients,
                         category: selectedCategory
                        )
                        modelContext.insert(newMeal)
