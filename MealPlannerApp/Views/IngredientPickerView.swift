@@ -100,7 +100,7 @@ struct IngredientPickerView: View {
                 .padding()
                 .background(AppTheme.background)
                 
-                if !searchText.isEmpty && !items.contains(where: { $0.name.localizedCaseInsensitiveContains(searchText) }) {
+                if !searchText.isEmpty && !filteredItems.contains(where: { $0.name.localizedCaseInsensitiveContains(searchText) }) {
                     Button {
                         newItemName = searchText
                         showingAddItem = true

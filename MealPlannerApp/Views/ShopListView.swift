@@ -269,10 +269,15 @@ struct ShopListView: View {
 }
 
 struct ItemSelectionView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \ShoppingItem.category) private var items: [ShoppingItem]
     @Binding var selectedItems: Set<ShoppingItem.ID>
     @State private var searchText = ""
     @State private var selectedCategory: String?
+    @State private var showingAddItem = false
+    @State private var newItemName = ""
+    @State private var selectedItemCategory = "Produce"
+    @State private var selectedEmoji: String?
     
     var filteredItems: [ShoppingItem] {
         var filtered = items
@@ -348,6 +353,23 @@ struct ItemSelectionView: View {
             .padding(.vertical, 8)
             .background(AppTheme.background)
             
+            // Add "Add searched item" button when no results found
+            if !searchText.isEmpty && !filteredItems.contains(where: { $0.name.localizedCaseInsensitiveContains(searchText) }) {
+                Button {
+                    newItemName = searchText
+                    showingAddItem = true
+                } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add \"\(searchText)\" to Items")
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(AppTheme.cardBackground)
+                    .foregroundColor(AppTheme.primary)
+                }
+            }
+            
             // List of items
             List {
                 ForEach(categories, id: \.self) { category in
@@ -380,6 +402,16 @@ struct ItemSelectionView: View {
             .listStyle(.insetGrouped)
         }
         .navigationTitle("Add Items")
+        .sheet(isPresented: $showingAddItem) {
+            AddItemView(
+                newItemName: $newItemName,
+                selectedCategory: $selectedItemCategory,
+                selectedEmoji: $selectedEmoji,
+                onAdd: { item in
+                    selectedItems.insert(item.id)
+                }
+            )
+        }
     }
     
     private func toggleSelection(for item: ShoppingItem) {
