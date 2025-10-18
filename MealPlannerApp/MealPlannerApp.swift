@@ -17,7 +17,11 @@ struct SimpleMealPlannerApp: App {
     
     init() {
         // Initialize RevenueCat
-        Purchases.logLevel = .debug  // Shows detailed logs - remove in production
+        #if DEBUG
+        Purchases.logLevel = .debug  // Only show debug logs in development
+        #else
+        Purchases.logLevel = .error  // Only show errors in production
+        #endif
         Purchases.configure(withAPIKey: "appl_GlCsilbnFLPORgRaVDLFPcqWycm")
         
         do {
